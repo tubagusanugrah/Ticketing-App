@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import '../models/ticket.dart';
 import '../services/firebase_service.dart';
 import 'home_screen.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class ReceiptScreen extends StatefulWidget {
   final String purchaseId;
@@ -25,7 +27,8 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   }
 
   void _loadPurchase() async {
-    Purchase? loadedPurchase = await FirebaseService.getPurchase(widget.purchaseId);
+    Purchase? loadedPurchase =
+        await FirebaseService.getPurchase(widget.purchaseId);
     setState(() {
       purchase = loadedPurchase;
       isLoading = false;
@@ -69,65 +72,49 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
         title: Text(
           'Bukti Pembayaran',
           style: TextStyle(
-            color: Colors.grey[800],
+            color: Colors.black,
             fontWeight: FontWeight.w600,
+            fontSize: 18,
           ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            // Success Icon
+            // Success Alert
             Container(
-              width: 80,
-              height: 80,
+              width: double.infinity,
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color(0xFF10B981).withOpacity(0.1),
-                shape: BoxShape.circle,
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
               ),
-              child: Icon(
-                Icons.check_circle,
-                color: Color(0xFF10B981),
-                size: 50,
-              ),
-            ),
-            
-            SizedBox(height: 16),
-            
-            Text(
-              'Pembayaran Berhasil!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            
-            SizedBox(height: 4),
-            
-            Text(
-              'Transaksi kamu telah selesai',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Bukti pembayaran berhasil di unduh!',
+                    style: TextStyle(
+                      color: Colors.green[700],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
-            
-            SizedBox(height: 8),
-            
-            Text(
-              'Detail pembayaran ada di bawah ini',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
-            ),
-
-            SizedBox(height: 32),
+            SizedBox(height: 24),
 
             // Receipt Card
             Container(
@@ -138,89 +125,158 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
                     offset: Offset(0, 4),
                   ),
                 ],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Receipt Header
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.check,
+                      color: Colors.blue[700],
+                      size: 40,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Pembayaran Berhasil',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Transaksi kamu telah selesai.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Text(
+                    'Detail pembayaran ada di bawah ini.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 32),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF4F46E5).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.receipt,
-                          color: Color(0xFF4F46E5),
-                          size: 20,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            purchase!.ticketTitle,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'VIP',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Bukti pembayaran berhasil di unduh!',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF10B981),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              purchase!.ticketTitle,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Rp. ${_formatPrice(purchase!.price)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
                     ],
                   ),
-
-                  SizedBox(height: 24),
-
-                  // Purchase Details
-                  _buildDetailRow('Nama Pemesan', purchase!.customerName),
-                  _buildDetailRow('Tanggal', DateFormat('dd MMM yyyy, HH:mm').format(purchase!.purchaseDate)),
-                  _buildDetailRow('Metode Pembayaran', purchase!.paymentMethod),
-                  
-                  SizedBox(height: 16),
-                  
+                  SizedBox(height: 20),
                   Divider(color: Colors.grey[300]),
-                  
-                  SizedBox(height: 16),
-                  
+                  SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Total Pembayaran',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
+                          color: Colors.black87,
                         ),
                       ),
                       Text(
-                        'Rp ${_formatPrice(purchase!.price)}',
+                        'Rp. ${_formatPrice(purchase!.price)}',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4F46E5),
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => HomeScreen()),
+                            (route) => false,
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.blue[700]!),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: Text(
+                            'Kembali',
+                            style: TextStyle(
+                              color: Colors.blue[700],
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _exportToPDF,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[700],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Unduh bukti',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -228,111 +284,46 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 ],
               ),
             ),
-
-            SizedBox(height: 32),
-
-            // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
-                      (route) => false,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Color(0xFF4F46E5)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(
-                      'Kembali',
-                      style: TextStyle(
-                        color: Color(0xFF4F46E5),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _downloadReceipt,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF4F46E5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Unduh bukti',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
-            ),
-          ),
-        ],
+  Future<void> _exportToPDF() async {
+    final pdf = pw.Document();
+
+    if (purchase == null) return;
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Bukti Pembayaran',
+                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 20),
+              pw.Text('Status: Pembayaran Berhasil', style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Tiket: ${purchase!.ticketTitle}', style: pw.TextStyle(fontSize: 16)),
+              pw.Text('Kategori: VIP', style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Harga: Rp ${_formatPrice(purchase!.price)}', style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 20),
+              pw.Divider(),
+              pw.Text(
+                'Total: Rp ${_formatPrice(purchase!.price)}',
+                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+              ),
+            ],
+          );
+        },
       ),
     );
-  }
 
-  void _downloadReceipt() {
-    // Simulate download process
-    HapticFeedback.lightImpact();
-    
-    // Show success notification
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.download_done, color: Colors.white),
-            SizedBox(width: 12),
-            Text('Bukti pembayaran berhasil diunduh!'),
-          ],
-        ),
-        backgroundColor: Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: EdgeInsets.all(16),
-      ),
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
 

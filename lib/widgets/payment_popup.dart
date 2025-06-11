@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/ticket.dart';
 import '../services/firebase_service.dart';
 import '../screens/receipt_screen.dart';
@@ -17,131 +18,133 @@ class PaymentPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Container(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Payment Method Icon and Title
-            _buildPaymentMethodHeader(),
-            
-            SizedBox(height: 24),
-            
-            // Payment Details
-            _buildPaymentDetails(),
-            
-            SizedBox(height: 32),
-            
-            // Confirm Button
-            Container(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () => _confirmPayment(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF4F46E5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Konfirmasi Pembayaran',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: Colors.white,
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 16),
+                _buildHeader(),
+                SizedBox(height: 16),
+                _buildDescription(),
+                SizedBox(height: 20),
+                _buildTotal(),
+                SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => _confirmPayment(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF4F46E5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Konfirmasi Pembayaran',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // Tombol Close (Back)
+          Positioned(
+            top: 12,
+            right: 12,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Icon(Icons.close, color: Colors.grey[600]),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildPaymentMethodHeader() {
-    IconData icon;
-    Color color;
+  Widget _buildHeader() {
+    String assetPath;
     String title;
 
     switch (paymentMethod) {
       case 'Tunai (Cash)':
-        icon = Icons.money;
-        color = Color(0xFF10B981);
+        assetPath = 'assets/images/QR.png';
         title = 'Pembayaran Tunai';
         break;
       case 'Kartu Kredit':
-        icon = Icons.credit_card;
-        color = Color(0xFFF59E0B);
-        title = 'Transfer Pembayaran';
+        assetPath = 'assets/images/6963703 1.png';
+        title = 'Pembayaran Kartu Kredit';
         break;
       case 'QRIS / QR Pay':
-        icon = Icons.qr_code;
-        color = Color(0xFF3B82F6);
-        title = 'Scan QR untuk Membayar';
+        assetPath = 'assets/images/QR (1).png';
+        title = 'Pembayaran QRIS';
         break;
       default:
-        icon = Icons.payment;
-        color = Color(0xFF4F46E5);
+        assetPath = 'assets/images/default_payment.png';
         title = 'Pembayaran';
     }
 
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: 150,
+          height: 150,
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(40),
+            color: Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 40,
+          child: Image.asset(
+            assetPath,
+            fit: BoxFit.contain,
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 12),
         Text(
           title,
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[800],
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF4F46E5),
           ),
         ),
         if (paymentMethod == 'Kartu Kredit') ...[
-          SizedBox(height: 8),
-          Text(
-            '8810 7769 1234 5678',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF4F46E5),
-            ),
-          ),
-        ],
-        if (paymentMethod == 'QRIS / QR Pay') ...[
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           Container(
-            width: 120,
-            height: 120,
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
+              color: Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Center(
-              child: Icon(
-                Icons.qr_code,
-                size: 80,
-                color: Colors.grey[400],
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '8810 7769 1234 9876',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: '8810776912349876'));
+                  },
+                  child: Icon(Icons.copy, size: 16, color: Color(0xFF4F46E5)),
+                )
+              ],
             ),
           ),
         ],
@@ -149,83 +152,67 @@ class PaymentPopup extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentDetails() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          if (paymentMethod == 'Tunai (Cash)') ...[
-            Text(
-              'Jika pembayaran telah diterima, klik\ntombol konfirmasi untuk bantuan\nmenyelesaikan transaksi.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-          ] else if (paymentMethod == 'Kartu Kredit') ...[
-            Text(
-              'Transfer kepada rekening kami berikut\nuntuk menyelesaikan proses\npembayaran.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-          ] else if (paymentMethod == 'QRIS / QR Pay') ...[
-            Text(
-              'Gunakan aplikasi yang dapat membaca\nkode QR (QRIS) untuk melakukan\npembayaran.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-          
-          SizedBox(height: 12),
-          
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Pembayaran',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
-                ),
-              ),
-              Text(
-                'Rp ${_formatPrice(ticket.price)}',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4F46E5),
-                ),
-              ),
-            ],
-          ),
-        ],
+  Widget _buildDescription() {
+    String description;
+
+    switch (paymentMethod) {
+      case 'Tunai (Cash)':
+        description =
+            'Jika pembayaran telah diterima, klik tombol konfirmasi pembayaran untuk menyelesaikan transaksi.';
+        break;
+      case 'Kartu Kredit':
+        description =
+            'Pastikan nominal dan tujuan transfer sudah benar sebelum melakukan pembayaran.';
+        break;
+      case 'QRIS / QR Pay':
+        description =
+            'Gunakan aplikasi e-wallet atau mobile banking untuk scan QR di atas dan selesaikan pembayaran.';
+        break;
+      default:
+        description = '';
+    }
+
+    return Text(
+      description,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 14,
+        color: Colors.grey[600],
       ),
     );
   }
 
+  Widget _buildTotal() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Total Pembayaran',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[800],
+          ),
+        ),
+        Text(
+          'Rp ${_formatPrice(ticket.price)}',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF4F46E5),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _confirmPayment(BuildContext context) async {
-    // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => Center(child: CircularProgressIndicator()),
     );
 
-    // Create purchase record
     Purchase purchase = Purchase(
       id: '',
       ticketId: ticket.id,
@@ -236,17 +223,11 @@ class PaymentPopup extends StatelessWidget {
       paymentMethod: paymentMethod,
     );
 
-    // Save to Firebase
     String? purchaseId = await FirebaseService.addPurchase(purchase);
 
-    // Close loading dialog
-    Navigator.pop(context);
-
+    Navigator.pop(context); // Remove loading
     if (purchaseId != null) {
-      // Close payment popup
-      Navigator.pop(context);
-      
-      // Navigate to receipt screen
+      Navigator.pop(context); // Close dialog
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -254,7 +235,6 @@ class PaymentPopup extends StatelessWidget {
         ),
       );
     } else {
-      // Show error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal memproses pembayaran. Silakan coba lagi.'),
@@ -267,7 +247,7 @@ class PaymentPopup extends StatelessWidget {
   String _formatPrice(int price) {
     return price.toString().replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
+      (match) => '${match[1]}.',
     );
   }
 }
